@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>見習證書發送工具</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --navy:#1F3A66; --navy-2:#2B4A7C; --gold:#CFA650; --gold-soft:#F6EEDC;
+  --bg:#F4F5F7; --surface:#FFFFFF; --ink:#1D2433; --muted:#5B6475; --line:#E2E5EB;
+  --ok:#1E7F4F; --ok-bg:#E7F5EE; --warn:#9A6212; --warn-bg:#FDF3E1;
+  --bad:#B42318; --bad-bg:#FDECEA; --idle:#5B6475; --idle-bg:#EEF0F3;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--navy-2)}
+.hidden{display:none!important}
+
+/* ── 頁首 ── */
+.top{background:var(--navy);color:#fff;border-bottom:4px solid var(--gold)}
+.top-inner{max-width:1180px;margin:0 auto;padding:14px 16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.brand b{font-family:'Noto Serif TC',serif;font-size:20px;letter-spacing:.04em}
+.brand small{display:block;opacity:.75;font-size:12px;letter-spacing:.02em}
+.meta{font-size:12.5px;opacity:.9;text-align:right}
+.meta button{background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:6px;padding:2px 10px;margin-left:8px;cursor:pointer}
+.tabs{max-width:1180px;margin:0 auto;padding:0 16px;display:flex;gap:4px;overflow-x:auto}
+.tab{background:none;border:none;color:rgba(255,255,255,.72);padding:10px 14px;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-4px;font-weight:500}
+.tab.on{color:#fff;border-bottom-color:#fff}
+.tab .n[hidden]{display:none}
+.tab .n{display:inline-block;min-width:20px;padding:0 6px;margin-left:6px;border-radius:10px;background:rgba(255,255,255,.18);font-size:12px}
+
+main{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+h2{font-size:18px;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
+.card h3{margin:0 0 4px;font-size:16px;display:flex;align-items:center;gap:10px}
+.step{display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:13px;align-items:center;justify-content:center;flex:none}
+.req{color:var(--bad);font-size:12px;font-weight:500}
+.opt{color:var(--muted);font-size:12px;font-weight:500}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label.f{display:block;font-size:13px;color:var(--muted)}
+label.f > span{display:block;margin-bottom:4px}
+input[type=text],input[type=email],input[type=password],input[type=number],select,textarea{
+  width:100%;padding:8px 10px;border:1px solid #CDD2DB;border-radius:8px;background:#fff}
+input:focus,select:focus,textarea:focus{outline:2px solid #9DB3D8;outline-offset:0;border-color:#9DB3D8}
+textarea{min-height:180px;resize:vertical;line-height:1.7}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid #CDD2DB;background:#fff;border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:500}
+.btn:hover{background:#F7F8FA}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+.btn.primary:hover{background:var(--navy-2)}
+.btn.danger{color:var(--bad);border-color:#EBC3BF}
+.btn.big{padding:12px 22px;font-size:16px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.link{background:none;border:none;color:var(--navy-2);text-decoration:underline;cursor:pointer;padding:0}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+.drop{display:block;border:1.5px dashed #B8C1D1;border-radius:10px;padding:16px;text-align:center;background:#FAFBFC;cursor:pointer;color:var(--muted);margin:12px 0}
+.drop.has{border-style:solid;border-color:#9DB3D8;background:#F3F6FB;color:var(--ink);text-align:left}
+.drop input[type=file]{display:none}
+.note{font-size:13px;color:var(--muted)}
+.notice{border-radius:8px;padding:10px 12px;font-size:13.5px;margin:10px 0}
+.notice.warn{background:var(--warn-bg);color:var(--warn)}
+.notice.info{background:#EEF3FA;color:var(--navy)}
+.notice.bad{background:var(--bad-bg);color:var(--bad)}
+.notice.ok{background:var(--ok-bg);color:var(--ok)}
+.radio{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:8px;cursor:pointer;margin-top:8px}
+.radio.on{border-color:var(--navy);background:#F3F6FB}
+.radio input{margin-top:5px}
+
+/* 表格 */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:#fff}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle;white-space:nowrap}
+th{background:#F7F8FA;color:var(--muted);font-weight:500;font-size:12.5px;position:sticky;top:0}
+td.wrap{white-space:normal;min-width:160px}
+tr:last-child td{border-bottom:none}
+td.c,th.c{text-align:center}
+.mini td,.mini th{padding:5px 8px;font-size:12.5px}
+.tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12.5px;font-weight:500}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}
+.tag.review{background:var(--warn-bg);color:var(--warn)}
+.tag.fail{background:var(--idle-bg);color:var(--idle)}
+.tag.sent{background:#E8EDF6;color:var(--navy)}
+.tag.err{background:var(--bad-bg);color:var(--bad)}
+.why{display:block;font-size:12px;color:var(--muted);white-space:normal;max-width:260px}
+.who b{display:block}
+.who small{color:var(--muted)}
+.manual{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gold);margin-left:3px;vertical-align:top}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--navy);cursor:pointer}
+.pill{border:1px solid var(--line);background:#fff;border-radius:16px;padding:4px 12px;cursor:pointer;font-size:13.5px}
+.pill.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.stat b{display:block;font-size:24px;line-height:1.2}
+.stat span{font-size:12.5px;color:var(--muted)}
+.stat.ok b{color:var(--ok)} .stat.review b{color:var(--warn)} .stat.navy b{color:var(--navy)}
+.bar{height:10px;background:#E6E9EF;border-radius:6px;overflow:hidden;margin:10px 0 6px}
+.bar i{display:block;height:100%;width:0;background:var(--navy);transition:width .3s}
+.preview-box{border:1px solid var(--line);border-radius:8px;background:#EEF0F3;padding:10px;margin-top:12px;text-align:center}
+.preview-box canvas{max-width:100%;height:auto;box-shadow:0 2px 10px rgba(0,0,0,.12);background:#fff}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0}
+code.ph{background:var(--gold-soft);padding:1px 6px;border-radius:4px;font-size:12.5px;margin-right:4px;display:inline-block;margin-bottom:4px}
+
+/* 登入 */
+.login{max-width:380px;margin:12vh auto;padding:0 16px}
+.login .card{padding:28px}
+.login h1{font-family:'Noto Serif TC',serif;font-size:22px;margin:0 0 4px;color:var(--navy)}
+
+/* 對話框、通知、忙碌 */
+.mask{position:fixed;inset:0;background:rgba(20,28,45,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.dialog{background:#fff;border-radius:12px;max-width:460px;width:100%;padding:22px;box-shadow:0 10px 40px rgba(0,0,0,.2)}
+.dialog h3{margin:0 0 10px}
+.dialog .row{justify-content:flex-end;margin-top:18px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1D2433;color:#fff;padding:10px 18px;border-radius:8px;z-index:60;font-size:14px;max-width:90vw}
+.toast.bad{background:var(--bad)}
+.busy{position:fixed;inset:0;background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;z-index:55;flex-direction:column;gap:12px;color:var(--navy);font-weight:500}
+.spin{width:34px;height:34px;border:3px solid #D5DCE8;border-top-color:var(--navy);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (max-width:640px){
+  .meta{text-align:left}
+  .card{padding:16px}
+  .stat b{font-size:20px}
+}
+</style>
+</head>
+<body>
+
+<!-- 登入 -->
+<div id="login" class="login">
+  <div class="card">
+    <h1>見習證書發送工具</h1>
+    <p class="sub">大專碩博 AI × 學習產業見習｜資訊月 × 臺灣教育科技展</p>
+    <label class="f"><span>帳號</span><input id="userInput" type="text" autocomplete="username" autocapitalize="off"></label>
+    <label class="f" style="margin-top:12px"><span>密碼</span><input id="passInput" type="password" autocomplete="current-password"></label>
+    <div id="loginErr" class="notice bad hidden"></div>
+    <div style="margin-top:16px"><button class="btn primary big" style="width:100%;justify-content:center" onclick="doLogin()">登入</button></div>
+  </div>
+</div>
+
+<!-- 主畫面 -->
+<div id="app" class="hidden">
+  <header class="top">
+    <div class="top-inner">
+      <div class="brand"><b>見習證書發送工具</b><small>大專碩博 AI × 學習產業見習｜<span id="hdYear"></span> 資訊月 × 臺灣教育科技展</small></div>
+      <div class="meta"><span id="hdSender"></span><br><span id="hdQuota"></span><button onclick="logout()">登出</button></div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab on" data-t="upload">① 上傳比對</button>
+      <button class="tab" data-t="list">② 確認名單<span class="n" id="nList">0</span></button>
+      <button class="tab" data-t="send">③ 產出寄送<span class="n" id="nSend">0</span></button>
+      <button class="tab" data-t="logs">④ 紀錄<span class="n" id="nFail" style="background:#B42318" hidden>0</span></button>
+      <button class="tab" data-t="settings">⑤ 設定</button>
+    </nav>
+  </header>
+  <main>
+    <section id="p-upload"></section>
+    <section id="p-list" class="hidden"></section>
+    <section id="p-send" class="hidden"></section>
+    <section id="p-logs" class="hidden"></section>
+    <section id="p-settings" class="hidden"></section>
+  </main>
+</div>
+
+<div id="layer"></div>
+
+<script>
+/* ================= 狀態與工具 ================= */
+const S = {
+  token: '', user: '', isDefaultLogin: false, aliases: [], cfg: {}, rows: [], stats: {}, template: null, quota: 0, sender: '', links: {},
+  tab: 'upload', filter: 'all', q: '', direct: false, checkinMode: 'paper',
+  files: { reg: null, survey: null, checkin: null }, lastBuild: null, sending: false, paused: false
+};
+const FIELD_DEF = {
+  reg:     [['name', '姓名', true], ['email', 'Email', true], ['school', '學校', false], ['phone', '手機', false], ['identity', '身分（篩選用）', false]],
+  survey:  [['email', 'Email', false], ['name', '姓名', false], ['phone', '手機', false]],
+  checkin: [['code', '編號', false], ['name', '姓名', false], ['email', 'Email', false], ['phone', '手機', false],
+            ['in', '簽到欄（有勾/有時間＝已簽）', false], ['out', '簽退欄', false], ['type', '「簽到/簽退」類型欄', false]]
+};
+const GUESS = {
+  name: ['姓名', '學生姓名', '參觀者姓名', '名字', 'name'],
+  email: ['email', 'e-mail', '電子郵件地址', '電子郵件', '電子信箱', '信箱', 'mail'],
+  school: ['學校', '就讀學校', '校名', '學校名稱', '服務單位', '單位', 'school'],
+  phone: ['手機', '行動電話', '手機號碼', '聯絡電話', '電話', 'phone', 'mobile'],
+  identity: ['身分', '身份', '學制', '參觀身分', '對象', '身分別'],
+  code: ['編號'],
+  in: ['簽到核對', '簽到'],
+  out: ['簽退核對', '簽退'],
+  type: ['簽到或簽退', '簽到/簽退']
+};
+
+const $ = s => document.querySelector(s);
+const h = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = n => Number(n || 0).toLocaleString('zh-TW');
+const today = () => { const d = new Date(); return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0'); };
+
+/* 後端 API（Google Apps Script，admin@itmonth.tw）。credentials:'omit' → 不帶 Google 登入資訊 */
+const API_URL = 'https://script.google.com/macros/s/AKfycbxFb35GsJmIOLsbGE7cdRpemgn5wi8e63BeQGB78036uiQXTLc8tb1pCFYNF_MWxcie/exec';
+async function callRaw(fn, ...args) {
+  let res;
+  try {
+    res = await fetch(API_URL, {
+      method: 'POST', credentials: 'omit', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ fn, args })
+    });
+  } catch (e) { throw new Error('無法連線到伺服器，請確認網路後再試一次'); }
+  const text = await res.text();
+  let d;
+  try { d = JSON.parse(text); } catch (e) { throw new Error('伺服器回應異常，請稍後再試（HTTP ' + res.status + '）'); }
+  if (!d.ok) throw new Error(d.error || '發生未知錯誤');
+  return d.data;
+}
+async function call(fn, ...args) {
+  try { return await callRaw(fn, S.token, ...args); }
+  catch (e) {
+    if (/重新登入/.test(e.message)) showLogin(e.message);
+    throw e;
+  }
+}
+function toast(msg, bad) {
+  const el = document.createElement('div');
+  el.className = 'toast' + (bad ? ' bad' : '');
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), bad ? 6000 : 3200);
+}
+function busy(msg) {
+  const el = document.createElement('div');
+  el.className = 'busy';
+  el.innerHTML = '<div class="spin"></div><div>' + h(msg || '處理中…') + '</div>';
+  document.body.appendChild(el);
+  return () => el.remove();
+}
+function modal(html, onMount) {
+  const m = document.createElement('div');
+  m.className = 'mask';
+  m.innerHTML = '<div class="dialog">' + html + '</div>';
+  $('#layer').appendChild(m);
+  const close = () => m.remove();
+  m.addEventListener('click', e => { if (e.target === m) close(); });
+  if (onMount) onMount(m, close);
+  return close;
+}
+function confirmBox(title, bodyHtml, okText, danger) {
+  return new Promise(res => {
+    modal(`<h3>${h(title)}</h3><div>${bodyHtml}</div>
+      <div class="row"><button class="btn" data-x>取消</button><button class="btn ${danger ? 'danger' : 'primary'}" data-ok>${h(okText || '確定')}</button></div>`,
+      (m, close) => {
+        m.querySelector('[data-x]').onclick = () => { close(); res(false); };
+        m.querySelector('[data-ok]').onclick = () => { close(); res(true); };
+      });
+  });
+}
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    if (document.querySelector('script[src="' + src + '"]')) return res();
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = () => rej(new Error('載入元件失敗：' + src));
+    document.head.appendChild(s);
+  });
+}
+function b64ToBytes(b64) {
+  const bin = atob(b64); const u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  return u8;
+}
+function bytesToB64(buf) {
+  const u8 = new Uint8Array(buf); let s = '';
+  for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+function download(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+}
+function store(k, v) { try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} }
+function recall(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+
+/* ================= 登入 ================= */
+function enterApp(d) {
+  applyData(d);
+  $('#login').classList.add('hidden');
+  $('#app').classList.remove('hidden');
+  renderAll();
+}
+function showLogin(msg) {
+  S.token = ''; store('certToken', null);
+  $('#app').classList.add('hidden');
+  $('#login').classList.remove('hidden');
+  const el = $('#loginErr');
+  el.textContent = msg || ''; el.classList.toggle('hidden', !msg);
+}
+async function doLogin() {
+  const user = $('#userInput').value.trim(), pass = $('#passInput').value;
+  if (!user || !pass) return;
+  const done = busy('登入中…');
+  try {
+    const d = await callRaw('apiLogin', user, pass);
+    S.token = d.token; store('certToken', d.token);
+    $('#passInput').value = '';
+    enterApp(d);
+  } catch (e) { showLogin(e.message); }
+  finally { done(); }
+}
+async function logout() {
+  try { await callRaw('apiLogout', S.token); } catch (e) {}
+  showLogin('');
+}
+['#userInput', '#passInput'].forEach(sel => $(sel).addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); }));
+
+function applyData(d) {
+  if (d.rows) S.rows = d.rows;
+  if (d.stats) S.stats = d.stats;
+  if (d.config) S.cfg = d.config;
+  if ('template' in d) S.template = d.template;
+  if (d.quota != null) S.quota = d.quota;
+  if (d.sender) S.sender = d.sender;
+  if (d.links) S.links = d.links;
+  if (d.user) S.user = d.user;
+  if ('isDefaultLogin' in d) S.isDefaultLogin = d.isDefaultLogin;
+  if (d.aliases) S.aliases = d.aliases;
+}
+function fromAddr() { return S.cfg.fromAlias || S.sender; }
+
+/* ================= 分頁 ================= */
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => go(b.dataset.t));
+function go(t) {
+  S.tab = t;
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  ['upload', 'list', 'send', 'logs', 'settings'].forEach(k => $('#p-' + k).classList.toggle('hidden', k !== t));
+  renderTab();
+  window.scrollTo(0, 0);
+}
+function renderAll() { renderHeader(); renderTab(); }
+function renderTab() {
+  ({ upload: renderUpload, list: renderList, send: renderSend, logs: renderLogs, settings: renderSettings })[S.tab]();
+}
+function renderHeader() {
+  $('#hdYear').textContent = S.cfg.year || '';
+  $('#hdSender').textContent = '寄件信箱：' + (fromAddr() || '—');
+  $('#hdQuota').textContent = '今日剩餘寄信額度：' + fmt(S.quota) + ' 封';
+  $('#nList').textContent = fmt(S.stats.total);
+  $('#nSend').textContent = fmt(S.stats.toSend);
+  const nf = $('#nFail');
+  nf.hidden = !S.stats.failed; nf.textContent = fmt(S.stats.failed);
+}
+function refreshStats(stats) { if (stats) S.stats = stats; renderHeader(); }
+
+/* ================= ① 上傳比對 ================= */
+async function readTable(file) {
+  const buf = await file.arrayBuffer();
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  let wb, encoding;
+  if (ext === 'xlsx' || ext === 'xls') {
+    wb = XLSX.read(buf, { type: 'array' }); encoding = 'Excel';
+  } else {
+    const u8 = new Uint8Array(buf);
+    let text;
+    try { text = new TextDecoder('utf-8', { fatal: true }).decode(u8); encoding = 'UTF-8'; }
+    catch (e) { text = new TextDecoder('big5').decode(u8); encoding = 'Big5'; }
+    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+    wb = XLSX.read(text, { type: 'string', raw: true });
+  }
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' })
+    .map(r => r.map(c => String(c == null ? '' : c).trim()))
+    .filter(r => r.some(c => c !== ''));
+  return { name: file.name, encoding, aoa };
+}
+function detectHeader(aoa) {
+  const keys = ['姓名', 'name', 'email', 'mail', '電子郵件', '信箱', '學校', '手機', '電話', '編號', '時間戳記', '身分', '身份'];
+  for (let i = 0; i < Math.min(10, aoa.length); i++) {
+    const row = aoa[i].map(c => c.toLowerCase());
+    const filled = row.filter(Boolean).length;
+    const hits = row.filter(c => keys.some(k => c.indexOf(k) > -1)).length;
+    if (hits >= 1 && filled >= 2) return i;
+  }
+  return 0;
+}
+function guessCol(headers, keys) {
+  const H = headers.map(x => String(x).trim().toLowerCase());
+  for (const k of keys) { const i = H.indexOf(k.toLowerCase()); if (i > -1) return i; }
+  for (const k of keys) { const i = H.findIndex(x => x.indexOf(k.toLowerCase()) > -1); if (i > -1) return i; }
+  return -1;
+}
+function setHeaderRow(kind, idx) {
+  const f = S.files[kind];
+  f.headerRow = Math.max(0, Math.min(idx, f.aoa.length - 1));
+  f.headers = f.aoa[f.headerRow];
+  f.map = {};
+  FIELD_DEF[kind].forEach(([k]) => { f.map[k] = guessCol(f.headers, GUESS[k] || []); });
+  if (kind === 'checkin' && f.map.type > -1) { f.map.in = -1; f.map.out = -1; }
+  if (kind === 'checkin' && f.map.in > -1 && f.map.in === f.map.out) f.map.out = -1;
+  if (kind === 'reg') f.useIdentity = f.map.identity > -1;
+}
+async function pickFile(kind, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const done = busy('讀取檔案中…');
+  try {
+    const t = await readTable(file);
+    if (t.aoa.length < 2) throw new Error('檔案裡沒有資料');
+    S.files[kind] = t;
+    setHeaderRow(kind, detectHeader(t.aoa));
+    renderUpload();
+  } catch (e) { toast('讀取失敗：' + e.message, true); }
+  finally { done(); }
+}
+function dataRows(f) { return f.aoa.slice(f.headerRow + 1); }
+function val(f, row, key) { const i = f.map[key]; return i > -1 ? (row[i] || '') : ''; }
+
+function fileCard(kind, step, title, badge, desc) {
+  const f = S.files[kind];
+  let body;
+  if (!f) {
+    body = `<label class="drop">點這裡選擇檔案（CSV 或 Excel）<input type="file" accept=".csv,.xlsx,.xls,text/csv" onchange="pickFile('${kind}', this)"></label>`;
+  } else {
+    const opts = i => '<option value="-1">（不使用）</option>' + f.headers.map((hd, j) =>
+      `<option value="${j}" ${j === i ? 'selected' : ''}>${XLSX.utils.encode_col(j)}｜${h(hd || '(空白)')}</option>`).join('');
+    const maps = FIELD_DEF[kind].map(([k, label, req]) => `
+      <label class="f"><span>${h(label)} ${req ? '<span class="req">必選</span>' : ''}</span>
+      <select onchange="S.files['${kind}'].map['${k}']=+this.value;renderUpload()">${opts(f.map[k])}</select></label>`).join('');
+    const sample = dataRows(f).slice(0, 3);
+    const cols = FIELD_DEF[kind].filter(([k]) => f.map[k] > -1);
+    const prev = cols.length ? `<div class="tablewrap" style="margin-top:12px"><table class="mini"><tr>${cols.map(c => `<th>${h(c[1])}</th>`).join('')}</tr>
+      ${sample.map(r => `<tr>${cols.map(c => `<td>${h(val(f, r, c[0]))}</td>`).join('')}</tr>`).join('')}</table></div>` : '';
+    let extra = '';
+    if (kind === 'reg' && !S.direct) {
+      extra = `<div class="notice info" style="margin-top:12px">
+        <label class="row" style="gap:8px"><input type="checkbox" ${f.useIdentity ? 'checked' : ''} ${f.map.identity < 0 ? 'disabled' : ''}
+          onchange="S.files.reg.useIdentity=this.checked;renderUpload()"> 只保留「身分」欄含有下列文字的資料（篩出大專碩博）</label>
+        <input type="text" id="kwInput" style="margin-top:6px" value="${h(S.files.reg.keywords != null ? S.files.reg.keywords : S.cfg.identityKeywords)}"
+          oninput="S.files.reg.keywords=this.value" ${f.useIdentity ? '' : 'disabled'}>
+        ${f.map.identity < 0 ? '<div class="note" style="margin-top:4px">沒有指定身分欄：上傳的資料會全部列入。若報名名單含教師或一般觀眾，請先指定身分欄。</div>' : ''}
+      </div>`;
+    }
+    const warn = (kind === 'reg' && f.map.email < 0) ? '<div class="notice warn">沒有指定 Email 欄，證書將無法寄出。</div>' : '';
+    body = `<div class="drop has"><div class="row"><b>${h(f.name)}</b><span class="note">${fmt(dataRows(f).length)} 筆 · ${f.encoding}</span>
+        <span class="spacer"></span><label class="note">標題在第 <input type="number" min="1" max="10" value="${f.headerRow + 1}" style="width:56px;padding:3px 6px"
+        onchange="setHeaderRow('${kind}', this.value-1);renderUpload()"> 列</label>
+        <button class="link" onclick="S.files['${kind}']=null;renderUpload()">移除</button></div></div>
+      <div class="grid">${maps}</div>${warn}${extra}${prev}`;
+  }
+  return `<div class="card"><h3><span class="step">${step}</span>${h(title)} ${badge}</h3><div class="note">${desc}</div>${body}</div>`;
+}
+
+function renderUpload() {
+  const p = $('#p-upload');
+  const reg = fileCard('reg', 1, S.direct ? '核發名單' : '報名名單', '<span class="req">必傳</span>',
+    S.direct ? '略過比對：上傳的人全部列為「符合」。需含姓名、Email。' : '從「資訊月參觀報名系統」匯出的 CSV。');
+  let cards = reg;
+  if (!S.direct) {
+    cards += fileCard('survey', 2, '問卷回覆', '<span class="req">必傳</span>',
+      '線上問卷（Google 表單）匯出的 CSV。沒上傳的話，會沿用上一次的問卷比對結果。');
+    const m = S.checkinMode;
+    cards += `<div class="card"><h3><span class="step">3</span>紙本簽到退 <span class="opt">二擇一</span></h3>
+      <label class="radio ${m === 'paper' ? 'on' : ''}"><input type="radio" name="ck" ${m === 'paper' ? 'checked' : ''} onchange="S.checkinMode='paper';renderUpload()">
+        <div><b>在「確認名單」頁對照紙本勾選</b><div class="note">不用上傳。比對後到下一頁逐人勾簽到、簽退。已勾過的不會因重新比對而消失。</div></div></label>
+      <label class="radio ${m === 'file' ? 'on' : ''}"><input type="radio" name="ck" ${m === 'file' ? 'checked' : ''} onchange="S.checkinMode='file';renderUpload()">
+        <div><b>上傳紙本謄打檔</b><div class="note">建議用本工具下載的「紙本簽到退表」謄打（以編號比對最準）；其他格式則依序用 Email、手機、姓名比對。</div></div></label>
+      ${m === 'file' ? fileCard('checkin', '3', '簽到退謄打檔', '', '').replace(/^<div class="card">/, '<div style="margin-top:12px">').replace(/<h3>.*?<\/h3>/, '') : ''}
+    </div>`;
+  }
+  const can = S.files.reg && S.files.reg.map.name > -1 && (S.direct || S.checkinMode === 'paper' || S.files.checkin);
+  const lb = S.lastBuild;
+  p.innerHTML = `
+    <div class="row" style="align-items:flex-end;margin-bottom:12px"><div><h2>上傳比對</h2>
+      <p class="sub" style="margin:0">上傳兩份 CSV，系統自動比對，產生核發名單。可以重複上傳，已勾選、已寄出的紀錄都會保留。</p></div>
+      <span class="spacer"></span>
+      <button class="link" onclick="S.direct=!S.direct;renderUpload()">${S.direct ? '← 回到比對模式' : '不需比對？直接上傳核發名單'}</button></div>
+    ${cards}
+    <div class="card" style="text-align:center">
+      <button class="btn primary big" ${can ? '' : 'disabled'} onclick="runBuild()">開始比對，產生核發名單</button>
+      ${S.stats.total ? `<div class="note" style="margin-top:8px">目前名單 ${fmt(S.stats.total)} 筆，重新比對會更新名單（不影響已寄出紀錄）</div>` : ''}
+      ${lb ? `<div class="notice ok" style="margin-top:14px;text-align:left">比對完成：共 ${fmt(lb.total)} 筆，符合 ${fmt(lb.ok)}、待確認 ${fmt(lb.review)}、不符合 ${fmt(lb.fail)}。
+        <button class="btn" style="margin-left:8px" onclick="go('list')">前往確認名單 →</button></div>` : ''}
+    </div>`;
+}
+
+async function runBuild() {
+  const reg = S.files.reg;
+  if (!reg) return;
+  if (!S.direct && !S.files.survey) {
+    const ok = await confirmBox('沒有上傳問卷回覆', '<p>這次會沿用上一次的問卷比對結果；第一次比對的話，所有人都會是「未填問卷」。</p><p>確定要繼續嗎？</p>', '繼續比對');
+    if (!ok) return;
+  }
+  const payload = {
+    mode: S.direct ? 'direct' : 'match',
+    filterIdentity: !S.direct && !!reg.useIdentity && reg.map.identity > -1,
+    identityKeywords: reg.keywords != null ? reg.keywords : S.cfg.identityKeywords,
+    reg: dataRows(reg).map(r => ({ name: val(reg, r, 'name'), email: val(reg, r, 'email'), school: val(reg, r, 'school'), phone: val(reg, r, 'phone'), identity: val(reg, r, 'identity') })),
+    survey: null, checkin: null, checkinMap: null
+  };
+  const sv = S.files.survey;
+  if (!S.direct && sv) payload.survey = dataRows(sv).map(r => ({ email: val(sv, r, 'email'), name: val(sv, r, 'name'), phone: val(sv, r, 'phone') }));
+  const ck = S.files.checkin;
+  if (!S.direct && S.checkinMode === 'file' && ck) {
+    payload.checkinMap = { type: ck.map.type > -1, in: ck.map.in > -1, out: ck.map.out > -1 };
+    payload.checkin = dataRows(ck).map(r => ({ code: val(ck, r, 'code'), name: val(ck, r, 'name'), email: val(ck, r, 'email'), phone: val(ck, r, 'phone'), type: val(ck, r, 'type'), in: val(ck, r, 'in'), out: val(ck, r, 'out') }));
+  }
+  const done = busy('比對中…');
+  try {
+    const d = await call('apiBuildList', payload);
+    applyData(d);
+    S.lastBuild = d.stats;
+    renderHeader(); renderUpload();
+    toast('比對完成');
+  } catch (e) { toast(e.message, true); }
+  finally { done(); }
+}
+
+/* ================= ② 確認名單 ================= */
+function resultTag(r) {
+  const cls = { '符合': 'ok', '待確認': 'review', '不符合': 'fail' }[r.result] || 'fail';
+  return `<span class="tag ${cls}">${h(r.result || '—')}</span>`;
+}
+function statusTag(r) {
+  if (r.status === '已寄出' || r.status === '已補寄') return `<span class="tag sent">${h(r.status)}</span><span class="why">${h(r.sentAt)}</span>`;
+  if (r.status === '失敗') return `<span class="tag err">失敗</span><span class="why">${h(r.error)}</span>`;
+  if (r.approved) return '<span class="note">待寄出</span>';
+  return '<span class="note">—</span>';
+}
+function filtered() {
+  const q = S.q.trim().toLowerCase();
+  return S.rows.filter(r => {
+    if (S.filter === 'ok' && r.result !== '符合') return false;
+    if (S.filter === 'review' && r.result !== '待確認') return false;
+    if (S.filter === 'fail' && r.result !== '不符合') return false;
+    if (S.filter === 'approved' && !r.approved) return false;
+    if (S.filter === 'sent' && !(r.status === '已寄出' || r.status === '已補寄')) return false;
+    if (q && ![r.seq, r.name, r.email, r.school, r.phone].join(' ').toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+function renderList() {
+  const p = $('#p-list');
+  const s = S.stats;
+  if (!S.rows.length) {
+    p.innerHTML = `<h2>確認名單</h2><div class="card" style="text-align:center;padding:40px">
+      <p>還沒有名單。</p><button class="btn primary" onclick="go('upload')">前往上傳比對</button></div>`;
+    return;
+  }
+  const pills = [['all', '全部', s.total], ['ok', '符合', s.ok], ['review', '待確認', s.review], ['fail', '不符合', s.fail], ['approved', '將核發', s.approved], ['sent', '已寄出', s.sent]]
+    .map(([k, l, n]) => `<button class="pill ${S.filter === k ? 'on' : ''}" onclick="S.filter='${k}';renderList()">${l} ${fmt(n)}</button>`).join('');
+  p.innerHTML = `
+    <div class="row" style="align-items:flex-end;margin-bottom:12px"><div><h2>確認名單</h2>
+      <p class="sub" style="margin:0">對照紙本勾選簽到、簽退。「核發」勾選者才會寄出；符合者預設勾選，待確認者請人工判斷。</p></div></div>
+    <div class="stats">
+      <div class="stat ok"><b>${fmt(s.ok)}</b><span>符合</span></div>
+      <div class="stat review"><b>${fmt(s.review)}</b><span>待確認</span></div>
+      <div class="stat"><b>${fmt(s.fail)}</b><span>不符合</span></div>
+      <div class="stat navy"><b>${fmt(s.approved)}</b><span>將核發</span></div>
+      <div class="stat navy"><b>${fmt(s.sent)}</b><span>已寄出</span></div>
+    </div>
+    <div class="card" style="padding:14px 16px">
+      <div class="row">
+        <input type="text" placeholder="搜尋姓名、Email、學校、編號" style="max-width:280px" value="${h(S.q)}" oninput="S.q=this.value;drawTable()">
+        <span class="spacer"></span>
+        <button class="btn" onclick="exportSignSheet()">下載紙本簽到退表</button>
+        <button class="btn" onclick="exportList()">匯出名單</button>
+        <button class="btn" onclick="addPerson()">＋ 新增人員</button>
+      </div>
+      <div class="row" style="margin-top:10px;gap:6px">${pills}</div>
+    </div>
+    <div class="tablewrap" id="tbl"></div>
+    <p class="note">簽到／簽退旁的 <span class="manual"></span> 表示是在網頁上人工勾選的。</p>`;
+  drawTable();
+}
+function drawTable() {
+  const list = filtered();
+  const box = $('#tbl');
+  if (!box) return;
+  if (!list.length) { box.innerHTML = '<div style="padding:24px;text-align:center" class="note">沒有符合條件的資料</div>'; return; }
+  box.innerHTML = `<table><thead><tr>
+      <th>編號</th><th>姓名／學校</th><th>Email</th><th class="c">簽到</th><th class="c">簽退</th><th class="c">問卷</th>
+      <th>比對結果</th><th class="c">核發</th><th>寄送</th><th></th></tr></thead><tbody>
+    ${list.map(r => {
+      const sent = r.status === '已寄出' || r.status === '已補寄';
+      return `<tr data-id="${h(r.id)}">
+        <td>${h(r.seq)}${r.certNo ? `<span class="why">${h(r.certNo)}</span>` : ''}</td>
+        <td class="who"><b>${h(r.name)}</b><small>${h(r.school)}${r.source && r.source !== '報名' ? '｜' + h(r.source) : ''}</small></td>
+        <td>${r.email ? h(r.email) : '<span class="tag err">缺 Email</span>'}</td>
+        <td class="c"><input type="checkbox" ${r.checkIn ? 'checked' : ''} ${sent ? 'disabled' : ''} onchange="tick(this,'inManual')">${r.inManual ? '<span class="manual"></span>' : ''}</td>
+        <td class="c"><input type="checkbox" ${r.checkOut ? 'checked' : ''} ${sent ? 'disabled' : ''} onchange="tick(this,'outManual')">${r.outManual ? '<span class="manual"></span>' : ''}</td>
+        <td class="c">${r.survey ? '✓' : '<span class="note">—</span>'}</td>
+        <td>${resultTag(r)}${r.note ? `<span class="why">${h(r.note)}</span>` : ''}</td>
+        <td class="c"><input type="checkbox" ${r.approved ? 'checked' : ''} ${sent ? 'disabled' : ''} onchange="tick(this,'approve')"></td>
+        <td>${statusTag(r)}</td>
+        <td><button class="link" onclick="editPerson(this.closest('tr').dataset.id)">編輯</button></td></tr>`;
+    }).join('')}</tbody></table>`;
+}
+async function tick(el, field) {
+  const id = el.closest('tr').dataset.id;
+  el.disabled = true;
+  try {
+    const d = await call('apiUpdateRow', id, { [field]: el.checked ? 'Y' : 'N' });
+    replaceRow(d.row); refreshStats(d.stats);
+    if (S.tab === 'list') { renderList(); }
+  } catch (e) { el.checked = !el.checked; toast(e.message, true); }
+  finally { el.disabled = false; }
+}
+function replaceRow(row) {
+  const i = S.rows.findIndex(x => x.id === row.id);
+  if (i > -1) S.rows[i] = row;
+}
+function personForm(r) {
+  r = r || {};
+  return `<div class="grid" style="grid-template-columns:1fr">
+    <label class="f"><span>姓名（會印在證書上）</span><input type="text" name="name" value="${h(r.name)}"></label>
+    <label class="f"><span>Email</span><input type="email" name="email" value="${h(r.email)}"></label>
+    <label class="f"><span>學校</span><input type="text" name="school" value="${h(r.school)}"></label></div>`;
+}
+function editPerson(id) {
+  const r = S.rows.find(x => x.id === id);
+  const sent = r.status === '已寄出' || r.status === '已補寄';
+  modal(`<h3>編輯 ${h(r.seq)}</h3>${personForm(r)}
+    ${sent ? '<div class="notice warn">此人證書已寄出；修改後如需重寄，請到「紀錄」頁補寄。</div>' : ''}
+    <div class="row">${sent ? '' : '<button class="btn danger" data-del>刪除</button>'}<span class="spacer"></span>
+      <button class="btn" data-x>取消</button><button class="btn primary" data-ok>儲存</button></div>`,
+    (m, close) => {
+      m.querySelector('[data-x]').onclick = close;
+      m.querySelector('[data-ok]').onclick = async () => {
+        const patch = { name: m.querySelector('[name=name]').value, email: m.querySelector('[name=email]').value, school: m.querySelector('[name=school]').value };
+        const done = busy('儲存中…');
+        try { const d = await call('apiUpdateRow', id, patch); replaceRow(d.row); refreshStats(d.stats); close(); renderTab(); toast('已儲存'); }
+        catch (e) { toast(e.message, true); } finally { done(); }
+      };
+      const del = m.querySelector('[data-del]');
+      if (del) del.onclick = async () => {
+        close();
+        if (!await confirmBox('刪除這筆資料？', `<p>${h(r.seq)} ${h(r.name)} 將從名單移除。重新比對時，若仍在報名名單內會再出現。</p>`, '刪除', true)) return;
+        const done = busy('刪除中…');
+        try { applyData(await call('apiRemoveRow', id)); renderAll(); toast('已刪除'); }
+        catch (e) { toast(e.message, true); } finally { done(); }
+      };
+    });
+}
+function addPerson() {
+  modal(`<h3>新增人員</h3><p class="note">用於現場簽到但名單上找不到的人。新增後列為「待確認」，需勾選「核發」才會寄出。</p>${personForm()}
+    <div class="row" style="justify-content:flex-start;gap:16px;margin-top:12px">
+      <label class="row" style="gap:6px"><input type="checkbox" name="checkIn" checked> 已簽到</label>
+      <label class="row" style="gap:6px"><input type="checkbox" name="checkOut" checked> 已簽退</label>
+      <label class="row" style="gap:6px"><input type="checkbox" name="survey"> 已填問卷</label></div>
+    <div class="row"><button class="btn" data-x>取消</button><button class="btn primary" data-ok>新增</button></div>`,
+    (m, close) => {
+      m.querySelector('[data-x]').onclick = close;
+      m.querySelector('[data-ok]').onclick = async () => {
+        const g = n => m.querySelector('[name=' + n + ']');
+        const data = { name: g('name').value, email: g('email').value, school: g('school').value, checkIn: g('checkIn').checked, checkOut: g('checkOut').checked, survey: g('survey').checked };
+        const done = busy('新增中…');
+        try { applyData(await call('apiAddRow', data)); close(); renderAll(); toast('已新增'); }
+        catch (e) { toast(e.message, true); } finally { done(); }
+      };
+    });
+}
+function exportSignSheet() {
+  const rows = S.rows.filter(r => r.source === '報名').slice()
+    .sort((a, b) => (a.school || '').localeCompare(b.school || '', 'zh-Hant') || a.name.localeCompare(b.name, 'zh-Hant'));
+  const title = `${S.cfg.year}資訊月×臺灣教育科技展　大專碩博AI×學習產業見習　簽到退表`;
+  const aoa = [[title], ['編號', '姓名', '學校', '簽到時間', '簽到簽名', '簽退時間', '簽退簽名', '簽到核對', '簽退核對']]
+    .concat(rows.map(r => [r.seq, r.name, r.school, '', '', '', '', '', '']));
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 8 } }];
+  ws['!cols'] = [6, 12, 22, 10, 14, 10, 14, 9, 9].map(w => ({ wch: w }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '簽到退表');
+  XLSX.writeFile(wb, `紙本簽到退表_${today()}.xlsx`);
+  toast('已下載。展後謄打時，在「簽到核對／簽退核對」打 V 即可上傳比對');
+}
+function exportList() {
+  const head = ['編號', '證書編號', '姓名', '學校', 'Email', '手機', '來源', '簽到', '簽退', '問卷', '比對結果', '備註', '核發', '寄送狀態', '寄送時間'];
+  const aoa = [head].concat(S.rows.map(r => [r.seq, r.certNo, r.name, r.school, r.email, r.phone, r.source, r.checkIn ? 'V' : '', r.checkOut ? 'V' : '', r.survey ? 'V' : '', r.result, r.note, r.approved ? 'V' : '', r.status, r.sentAt]));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), '核發名單');
+  XLSX.writeFile(wb, `核發名單_${today()}.xlsx`);
+}
+
+/* ================= ③ 產出寄送 ================= */
+function renderSend() {
+  const p = $('#p-send');
+  const s = S.stats, t = S.template;
+  const approvedRows = S.rows.filter(r => r.approved);
+  const tplHtml = !t ? `<div class="notice warn">尚未設定證書範本。<button class="link" onclick="go('settings')">前往設定 →</button></div>`
+    : !t.ok ? `<div class="notice bad">${h(t.error || '範本有問題')}。<button class="link" onclick="go('settings')">前往設定 →</button></div>`
+    : `<div class="notice ok">範本：${h(t.name)}｜可套用欄位：${t.found.map(x => `<code class="ph">${h(x)}</code>`).join('')}</div>`;
+  const opts = approvedRows.length ? approvedRows.map(r => `<option value="${h(r.id)}">${h(r.seq)} ${h(r.name)}｜${h(r.school)}</option>`).join('') : '<option value="">（範例：王小明）</option>';
+  const pdfPct = s.approved ? Math.round(s.withPdf / s.approved * 100) : 0;
+  const sentPct = s.approved ? Math.round(s.sent / s.approved * 100) : 0;
+  p.innerHTML = `
+    <h2>產出寄送</h2><p class="sub">建議順序：預覽 → 寄測試信給自己 → 正式寄出（寄出時會自動產出 PDF）。</p>
+    ${tplHtml}
+    <div class="card"><h3><span class="step">1</span>預覽證書</h3>
+      <div class="row" style="margin-top:10px"><select id="pvSel" style="max-width:360px">${opts}</select>
+        <button class="btn primary" onclick="previewCert()" ${t && t.ok ? '' : 'disabled'}>產生預覽</button>
+        <button class="btn hidden" id="pvDl">下載這張 PDF</button></div>
+      <div id="pvBox" class="preview-box hidden"></div></div>
+
+    <div class="card"><h3><span class="step">2</span>寄測試信</h3>
+      <p class="note">用上面選的人產出證書，寄到指定信箱，確認信件內容與附件。不會改變任何寄送狀態。</p>
+      <div class="row"><input type="email" id="testTo" placeholder="收件信箱" style="max-width:320px" value="${h(recall('testTo') || '')}">
+        <button class="btn" onclick="sendTest()" ${t && t.ok ? '' : 'disabled'}>寄測試信</button></div></div>
+
+    <div class="card"><h3><span class="step">3</span>正式寄出</h3>
+      <div class="kv" style="margin:8px 0 4px">
+        <dt>將核發</dt><dd>${fmt(s.approved)} 人</dd>
+        <dt>已寄出</dt><dd>${fmt(s.sent)} 人</dd>
+        <dt>待寄出</dt><dd><b>${fmt(s.toSend)}</b> 人${s.failed ? `（另有 ${fmt(s.failed)} 筆失敗，請到「紀錄」頁處理）` : ''}</dd>
+        <dt>今日寄信額度</dt><dd>${fmt(S.quota)} 封</dd></div>
+      <div class="bar"><i id="sendBar" style="width:${sentPct}%"></i></div>
+      <div class="note" id="sendMsg">${fmt(s.sent)} / ${fmt(s.approved)}</div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary big" id="sendBtn" onclick="startSend()" ${s.toSend && t && t.ok ? '' : 'disabled'}>寄出 ${fmt(s.toSend)} 份證書</button>
+        <button class="btn hidden" id="pauseBtn" onclick="S.paused=true;this.disabled=true;this.textContent='暫停中…'">暫停</button></div></div>
+
+    <div class="card"><h3><span class="step">＋</span>PDF 備份 <span class="opt">選用</span></h3>
+      <p class="note">先產出全部 PDF、打包下載留存。範本或設定改過，請先「重新產出」再寄送。</p>
+      <div class="bar"><i id="pdfBar" style="width:${pdfPct}%"></i></div>
+      <div class="note" id="pdfMsg">已產出 ${fmt(s.withPdf)} / ${fmt(s.approved)}</div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" onclick="genAll()" ${s.approved && t && t.ok ? '' : 'disabled'}>產出全部 PDF</button>
+        <button class="btn" onclick="zipAll()" ${s.approved ? '' : 'disabled'}>打包下載 ZIP</button>
+        <span class="spacer"></span>
+        <button class="link" onclick="resetPdfs()">重新產出未寄出的 PDF</button></div></div>`;
+}
+async function ensurePdfJs() {
+  const base = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/';
+  await loadScript(base + 'pdf.min.js');
+  await loadScript(base + 'pdf.worker.min.js');
+}
+async function previewCert() {
+  const id = $('#pvSel').value;
+  const done = busy('產生預覽中（約 5–10 秒）…');
+  try {
+    const [d] = await Promise.all([call('apiPreview', id), ensurePdfJs()]);
+    const bytes = b64ToBytes(d.base64);
+    const pdf = await pdfjsLib.getDocument({ data: bytes.slice() }).promise;
+    const page = await pdf.getPage(1);
+    const box = $('#pvBox');
+    box.classList.remove('hidden');
+    box.innerHTML = '';
+    const width = Math.min(box.clientWidth - 20, 900);
+    const vp0 = page.getViewport({ scale: 1 });
+    const vp = page.getViewport({ scale: (width / vp0.width) * (window.devicePixelRatio || 1) });
+    const cv = document.createElement('canvas');
+    cv.width = vp.width; cv.height = vp.height; cv.style.width = width + 'px';
+    box.appendChild(cv);
+    await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+    const dl = $('#pvDl');
+    dl.classList.remove('hidden');
+    dl.onclick = () => download(new Blob([bytes], { type: 'application/pdf' }), d.fileName);
+  } catch (e) { toast(e.message, true); }
+  finally { done(); }
+}
+async function sendTest() {
+  const to = $('#testTo').value.trim();
+  if (!to) return toast('請填收件信箱', true);
+  store('testTo', to);
+  const done = busy('寄送測試信中…');
+  try { const d = await call('apiSendTest', $('#pvSel').value, to); S.quota = d.quota; renderHeader(); toast('測試信已寄到 ' + d.to); }
+  catch (e) { toast(e.message, true); } finally { done(); }
+}
+async function startSend() {
+  const s = S.stats;
+  if (s.toSend > S.quota) {
+    if (!await confirmBox('今日額度不足', `<p>待寄 ${fmt(s.toSend)} 封，今日剩餘額度 ${fmt(S.quota)} 封。</p><p>今天會先寄 ${fmt(S.quota)} 封，其餘明天再按一次「寄出」即可，不會重複寄。</p>`, '先寄出可寄的部分')) return;
+  } else if (!await confirmBox('確定正式寄出？', `<p>將寄出 <b>${fmt(s.toSend)}</b> 份證書，寄件信箱為 ${h(fromAddr())}。</p><p class="note">寄出過程請不要關閉此頁；可隨時暫停，之後再按寄出會從未寄的人繼續。</p>`, '確定寄出')) return;
+  S.sending = true; S.paused = false;
+  $('#sendBtn').disabled = true;
+  const pb = $('#pauseBtn'); pb.classList.remove('hidden'); pb.disabled = false; pb.textContent = '暫停';
+  let totalSent = 0, totalFail = 0, guard = 0;
+  try {
+    while (!S.paused) {
+      const d = await call('apiSendBatch');
+      totalSent += d.sent; totalFail += d.failed; S.quota = d.quota; refreshStats(d.stats);
+      const st = d.stats;
+      $('#sendBar').style.width = (st.approved ? Math.round(st.sent / st.approved * 100) : 0) + '%';
+      $('#sendMsg').textContent = `${fmt(st.sent)} / ${fmt(st.approved)}　本次寄出 ${fmt(totalSent)}${totalFail ? `、失敗 ${fmt(totalFail)}` : ''}　剩 ${fmt(d.remaining)}`;
+      if (!d.remaining) break;
+      if (d.quota < 1) { toast('今日寄信額度已用完，明天再按「寄出」繼續', true); break; }
+      if (d.sent + d.failed === 0 && ++guard > 2) { toast('寄送沒有進展，請稍後再試', true); break; }
+    }
+    toast(S.paused ? `已暫停：本次寄出 ${totalSent} 份` : `寄送完成：本次寄出 ${totalSent} 份${totalFail ? `，失敗 ${totalFail} 份` : ''}`, totalFail > 0);
+  } catch (e) { toast('寄送中斷：' + e.message + '（再按一次寄出會從未寄的人繼續）', true); }
+  finally {
+    S.sending = false;
+    const d = await call('apiBootstrap').catch(() => null);
+    if (d) applyData(d);
+    renderAll();
+  }
+}
+async function genAll() {
+  let guard = 0;
+  const btns = document.querySelectorAll('#p-send button'); btns.forEach(b => b.disabled = true);
+  try {
+    while (true) {
+      const d = await call('apiGenerateBatch');
+      refreshStats(d.stats);
+      const st = d.stats;
+      $('#pdfBar').style.width = (st.approved ? Math.round(st.withPdf / st.approved * 100) : 0) + '%';
+      $('#pdfMsg').textContent = `已產出 ${fmt(st.withPdf)} / ${fmt(st.approved)}`;
+      if (!d.remaining) break;
+      if (d.done + d.failed === 0 && ++guard > 2) break;
+    }
+    toast('PDF 產出完成');
+  } catch (e) { toast(e.message, true); }
+  finally { const d = await call('apiBootstrap').catch(() => null); if (d) applyData(d); renderAll(); }
+}
+async function zipAll() {
+  const list = S.rows.filter(r => r.approved);
+  if (!list.length) return;
+  if (!await confirmBox('打包下載', `<p>共 ${fmt(list.length)} 份；尚未產出的會先產出，約需 ${Math.ceil(list.length * 4 / 60)} 分鐘。</p>`, '開始')) return;
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+  const zip = new JSZip();
+  const msg = $('#pdfMsg'), bar = $('#pdfBar');
+  try {
+    for (let i = 0; i < list.length; i++) {
+      msg.textContent = `打包中 ${i + 1} / ${list.length}：${list[i].name}`;
+      bar.style.width = Math.round((i + 1) / list.length * 100) + '%';
+      const d = await call('apiGetPdf', list[i].id);
+      zip.file(d.fileName, b64ToBytes(d.base64));
+    }
+    msg.textContent = '壓縮中…';
+    download(await zip.generateAsync({ type: 'blob' }), `見習證書_${today()}.zip`);
+    toast('已下載 ZIP');
+  } catch (e) { toast(e.message, true); }
+  finally { const d = await call('apiBootstrap').catch(() => null); if (d) applyData(d); renderAll(); }
+}
+async function resetPdfs() {
+  if (!await confirmBox('重新產出 PDF', '<p>會刪除所有「尚未寄出」者已產出的 PDF，下次產出或寄送時依最新範本與設定重做。已寄出的不受影響，證書編號不變。</p>', '確定')) return;
+  const done = busy('處理中…');
+  try { const d = await call('apiResetPdfs'); refreshStats(d.stats); renderSend(); toast(`已清除 ${d.cleared} 份`); }
+  catch (e) { toast(e.message, true); } finally { done(); }
+}
+
+/* ================= ④ 紀錄 ================= */
+async function renderLogs() {
+  const p = $('#p-logs');
+  const failed = S.rows.filter(r => r.status === '失敗');
+  const sent = S.rows.filter(r => r.status === '已寄出' || r.status === '已補寄');
+  p.innerHTML = `
+    <h2>紀錄</h2><p class="sub">處理寄送失敗、補寄（例如學生說沒收到或 Email 填錯），以及查看操作紀錄。</p>
+    <div class="card"><h3>寄送失敗 <span class="tag ${failed.length ? 'err' : 'ok'}">${fmt(failed.length)}</span></h3>
+      ${failed.length ? `<p class="note">修正 Email 後按「補寄」；或全部重新排入，到「產出寄送」頁再寄一次。</p>
+        <div class="tablewrap"><table><tr><th>編號</th><th>姓名</th><th>Email</th><th>原因</th><th></th></tr>
+        ${failed.map(r => `<tr data-id="${h(r.id)}"><td>${h(r.seq)}</td><td>${h(r.name)}</td>
+          <td><input type="email" class="fx" value="${h(r.email)}" style="min-width:220px"></td>
+          <td class="wrap">${h(r.error)}</td>
+          <td><button class="btn" onclick="const tr=this.closest('tr');resend(tr.dataset.id, tr.querySelector('.fx').value)">補寄</button></td></tr>`).join('')}</table></div>
+        <div style="margin-top:10px"><button class="btn" onclick="requeue()">全部重新排入待寄</button></div>`
+      : '<p class="note">沒有失敗的紀錄。</p>'}</div>
+    <div class="card"><h3>已寄出 <span class="tag sent">${fmt(sent.length)}</span></h3>
+      <div class="row" style="margin:8px 0"><input type="text" id="sentQ" placeholder="搜尋姓名或 Email" style="max-width:280px" oninput="drawSent()"></div>
+      <div class="tablewrap" id="sentTbl"></div></div>
+    <div class="card"><h3>操作紀錄</h3><div class="tablewrap" id="logTbl"><div class="note" style="padding:16px">載入中…</div></div></div>`;
+  drawSent();
+  try {
+    const logs = await call('apiLogs');
+    $('#logTbl').innerHTML = logs.length ? `<table class="mini"><tr><th>時間</th><th>動作</th><th>證書編號</th><th>姓名</th><th>Email</th><th>結果</th><th>說明</th></tr>
+      ${logs.map(l => `<tr>${l.map((c, i) => `<td class="${i === 6 ? 'wrap' : ''}">${i === 5 && c === '失敗' ? '<span class="tag err">失敗</span>' : h(c)}</td>`).join('')}</tr>`).join('')}</table>`
+      : '<div class="note" style="padding:16px">尚無紀錄</div>';
+  } catch (e) { $('#logTbl').innerHTML = `<div class="notice bad">${h(e.message)}</div>`; }
+}
+function drawSent() {
+  const q = ($('#sentQ') ? $('#sentQ').value : '').trim().toLowerCase();
+  const list = S.rows.filter(r => (r.status === '已寄出' || r.status === '已補寄') && (!q || (r.name + r.email).toLowerCase().includes(q)));
+  $('#sentTbl').innerHTML = list.length ? `<table><tr><th>證書編號</th><th>姓名</th><th>Email</th><th>狀態</th><th></th></tr>
+    ${list.map(r => `<tr data-id="${h(r.id)}"><td>${h(r.certNo)}</td><td>${h(r.name)}</td><td>${h(r.email)}</td><td>${statusTag(r)}</td>
+      <td><button class="link" onclick="dlOne(this.closest('tr').dataset.id)">下載 PDF</button>　<button class="link" onclick="resendAsk(this.closest('tr').dataset.id)">補寄</button></td></tr>`).join('')}</table>`
+    : '<div class="note" style="padding:16px">沒有資料</div>';
+}
+function resendAsk(id) {
+  const r = S.rows.find(x => x.id === id);
+  modal(`<h3>補寄 ${h(r.name)}</h3><p class="note">可改成新的信箱（名單上的 Email 也會一併更新）。同一張證書、同一個證書編號。</p>
+    <label class="f"><span>收件信箱</span><input type="email" name="to" value="${h(r.email)}"></label>
+    <div class="row"><button class="btn" data-x>取消</button><button class="btn primary" data-ok>補寄</button></div>`,
+    (m, close) => {
+      m.querySelector('[data-x]').onclick = close;
+      m.querySelector('[data-ok]').onclick = () => { const to = m.querySelector('[name=to]').value; close(); resend(id, to); };
+    });
+}
+async function resend(id, to) {
+  const done = busy('補寄中…');
+  try {
+    const d = await call('apiResend', id, (to || '').trim());
+    replaceRow(d.row); refreshStats(d.stats);
+    toast(d.row.status === '失敗' ? '補寄失敗：' + d.row.error : '已補寄到 ' + d.row.email, d.row.status === '失敗');
+    renderLogs();
+  } catch (e) { toast(e.message, true); } finally { done(); }
+}
+async function requeue() {
+  const done = busy('處理中…');
+  try { const d = await call('apiRequeueFailed'); const b = await call('apiBootstrap'); applyData(b); renderAll(); toast(`已排入 ${d.requeued} 筆，請到「產出寄送」頁寄出`); }
+  catch (e) { toast(e.message, true); } finally { done(); }
+}
+async function dlOne(id) {
+  const done = busy('下載中…');
+  try { const d = await call('apiGetPdf', id); download(new Blob([b64ToBytes(d.base64)], { type: 'application/pdf' }), d.fileName); }
+  catch (e) { toast(e.message, true); } finally { done(); }
+}
+
+/* ================= ⑤ 設定 ================= */
+function renderSettings() {
+  const c = S.cfg, t = S.template;
+  const tx = (k, label, extra) => `<label class="f"><span>${label}</span><input type="text" name="${k}" value="${h(c[k])}" ${extra || ''}></label>`;
+  const ck = (k, label) => `<label class="row" style="gap:8px;margin:6px 0"><input type="checkbox" name="${k}" ${c[k] !== false ? 'checked' : ''}> ${label}</label>`;
+  $('#p-settings').innerHTML = `
+    <h2>設定</h2><p class="sub">修改後按最下方「儲存設定」。核發條件改變時，名單的比對結果會自動重算。</p>
+    <form id="cfgForm" onsubmit="return false">
+    <div class="card"><h3>證書內容</h3><div class="grid" style="margin-top:10px">
+      ${tx('year', '年度 {{年度}}')}${tx('hours', '時數 {{時數}}')}${tx('issueMonth', '發證年月 {{發證年月}}')}${tx('certPrefix', '證書編號前綴（例：ITM2026-）')}</div></div>
+    <div class="card"><h3>核發條件</h3>
+      ${ck('requireCheckin', '需要紙本簽到核對')}${ck('requireOut', '需要簽退（勾選「需要紙本簽到核對」時才有作用）')}${ck('requireSurvey', '需要填寫問卷')}
+      <label class="f" style="margin-top:8px"><span>大專碩博身分關鍵字（以逗號分隔）</span><input type="text" name="identityKeywords" value="${h(c.identityKeywords)}"></label></div>
+    <div class="card"><h3>信件</h3><div class="grid" style="margin-top:10px">
+      ${tx('senderName', '寄件者名稱')}${tx('replyTo', '回覆信箱')}
+      <label class="f"><span>寄件信箱</span><select name="fromAlias">
+        <option value="">${h(S.sender)}（程式擁有者帳號）</option>
+        ${(S.aliases || []).map(a => `<option value="${h(a)}" ${a.toLowerCase() === String(c.fromAlias || '').toLowerCase() ? 'selected' : ''}>${h(a)}（別名）</option>`).join('')}
+      </select></label></div>
+      ${(S.aliases || []).length ? '' : '<p class="note">若要改用其他信箱（例如 service@itmonth.tw）寄出，請先在程式擁有者的 Gmail「設定 → 帳戶 → 以這個地址寄送郵件」新增，重新整理後即可在此選擇。</p>'}
+      <label class="f" style="margin-top:12px"><span>主旨</span><input type="text" name="subject" value="${h(c.subject)}"></label>
+      <label class="f" style="margin-top:12px"><span>內文</span><textarea name="body">${h(c.body)}</textarea></label>
+      <p class="note">可用欄位：${['{{姓名}}', '{{學校}}', '{{證書編號}}', '{{年度}}', '{{時數}}', '{{發證年月}}'].map(x => `<code class="ph">${x}</code>`).join('')}</p></div>
+    <div style="margin-bottom:24px"><button class="btn primary big" onclick="saveConfig()">儲存設定</button></div>
+    </form>
+
+    <div class="card"><h3>證書範本</h3>
+      ${t && t.ok ? `<div class="notice ok">目前範本：<a href="${h(t.url)}" target="_blank">${h(t.name)}</a>（僅程式擁有者帳號可開啟編輯）</div>` : '<div class="notice warn">尚未設定範本</div>'}
+      <p class="note">方法一：上傳 PowerPoint 檔（.pptx），系統自動轉成 Google 簡報。Canva 設計可匯出成 PPTX 上傳。<br>
+        方法二：貼上 Google 簡報網址（寄件帳號需有編輯權限）。<br>範本內要有文字 <code class="ph">{{姓名}}</code>，其他欄位可選用。</p>
+      <div class="row"><label class="btn">上傳 .pptx<input type="file" accept=".pptx" hidden onchange="uploadTpl(this)"></label>
+        <input type="text" id="tplUrl" placeholder="或貼上 Google 簡報網址" style="max-width:360px"><button class="btn" onclick="setTplUrl()">套用網址</button></div></div>
+
+    <div class="card"><h3>登入帳號密碼</h3>
+      ${S.isDefaultLogin ? '<div class="notice warn">目前使用預設帳密。名單含學生個資，請先修改再通知同仁。</div>' : ''}
+      <div class="grid" style="margin-top:10px">
+        <label class="f"><span>目前密碼</span><input type="password" id="curPass" autocomplete="current-password"></label>
+        <label class="f"><span>新帳號</span><input type="text" id="newUser" value="${h(S.user)}" autocapitalize="off"></label>
+        <label class="f"><span>新密碼（至少 6 碼）</span><input type="password" id="newPass" autocomplete="new-password"></label>
+        <label class="f"><span>再輸入一次新密碼</span><input type="password" id="newPass2" autocomplete="new-password"></label></div>
+      <div style="margin-top:12px"><button class="btn" onclick="changeLogin()">修改帳號密碼</button>
+        <span class="note">修改後，其他已登入的同仁需重新登入。</span></div></div>
+
+    <div class="card"><h3>系統</h3>
+      <dl class="kv"><dt>程式擁有者</dt><dd>${h(S.sender)}</dd>
+        <dt>資料試算表</dt><dd><a href="${h(S.links.sheet)}" target="_blank">開啟</a>（僅程式擁有者帳號可開）</dd>
+        <dt>雲端資料夾</dt><dd><a href="${h(S.links.folder)}" target="_blank">開啟</a>（PDF 都存在這裡）</dd></dl></div>`;
+}
+async function saveConfig() {
+  const f = $('#cfgForm');
+  const cfg = {};
+  ['year', 'hours', 'issueMonth', 'certPrefix', 'senderName', 'replyTo', 'fromAlias', 'subject', 'identityKeywords'].forEach(k => cfg[k] = f.querySelector('[name=' + k + ']').value.trim());
+  cfg.body = f.querySelector('[name=body]').value;
+  ['requireCheckin', 'requireOut', 'requireSurvey'].forEach(k => cfg[k] = f.querySelector('[name=' + k + ']').checked);
+  const done = busy('儲存中…');
+  try {
+    applyData(await call('apiSaveConfig', cfg));
+    renderAll();
+    toast(S.stats.withPdf ? '已儲存。若改了證書內容，請到「產出寄送」按「重新產出未寄出的 PDF」' : '已儲存');
+  } catch (e) { toast(e.message, true); } finally { done(); }
+}
+async function uploadTpl(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const done = busy('上傳並轉換範本中…');
+  try {
+    S.template = await call('apiUploadTemplate', bytesToB64(await file.arrayBuffer()), file.name);
+    renderSettings(); toast('範本已更新');
+  } catch (e) { toast(e.message, true); } finally { done(); input.value = ''; }
+}
+async function setTplUrl() {
+  const url = $('#tplUrl').value.trim();
+  if (!url) return;
+  const done = busy('檢查範本中…');
+  try { S.template = await call('apiSetTemplateUrl', url); renderSettings(); toast('範本已更新'); }
+  catch (e) { toast(e.message, true); } finally { done(); }
+}
+async function changeLogin() {
+  const cur = $('#curPass').value, user = $('#newUser').value.trim(), p1 = $('#newPass').value, p2 = $('#newPass2').value;
+  if (!cur) return toast('請輸入目前密碼', true);
+  if (p1.length < 6) return toast('新密碼至少 6 碼', true);
+  if (p1 !== p2) return toast('兩次輸入的新密碼不一致', true);
+  const done = busy('修改中…');
+  try {
+    const d = await call('apiChangeLogin', cur, user, p1);
+    S.token = d.token; store('certToken', d.token); S.user = d.user; S.isDefaultLogin = false;
+    renderSettings(); toast('帳號密碼已修改，請通知同仁');
+  } catch (e) { toast(e.message, true); } finally { done(); }
+}
+
+/* ================= 啟動 ================= */
+window.addEventListener('beforeunload', e => { if (S.sending) { e.preventDefault(); e.returnValue = ''; } });
+(async function init() {
+  const t = recall('certToken');
+  if (!t) return;
+  S.token = t;
+  const done = busy('載入中…');
+  try { enterApp(await call('apiBootstrap')); }
+  catch (e) { showLogin(/重新登入/.test(e.message) ? '' : e.message); }
+  finally { done(); }
+})();
+</script>
+</body>
+</html>
